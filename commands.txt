@@ -1,0 +1,8 @@
+source venv/Scripts/activate
+
+
+pip install pandas numpy scikit-learn matplotlib seaborn
+python expense_tracker.py
+
+
+deactivate

@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Upload Expenses (Guest)</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; max-width: 720px; margin: auto; }
+    label { display:block; margin-bottom:8px; }
+    .btn { padding:8px 14px; cursor:pointer; }
+    .msg { margin-top:12px; }
+  </style>
+</head>
+<body>
+  <h1>Temporary Expense Tracker — Upload CSV</h1>
+  <p>CSV format: <code>Date,Category,Amount</code> (e.g., 2025-01-03,Groceries,2200)</p>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label>
+      Choose CSV:
+      <input type="file" name="file" id="fileInput" accept=".csv" required />
+    </label>
+    <button class="btn" type="submit">Upload</button>
+  </form>
+
+  <div class="msg" id="message"></div>
+
+  <hr/>
+  <a href="/report_page">View report page</a>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileEl = document.getElementById('fileInput');
+      if (!fileEl.files.length) { message.innerText = "Choose a CSV file first."; return; }
+
+      const fd = new FormData();
+      fd.append('file', fileEl.files[0]);
+
+      const res = await fetch('/upload', { method: 'POST', body: fd });
+      const json = await res.json();
+      if (res.ok) {
+        message.innerText = "Upload OK — " + (json.message || '');
+      } else {
+        message.innerText = "Upload error: " + (json.error || JSON.stringify(json));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Upload Your Expenses</title>
+  <script src="js/app.js" defer></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; text-align: center; }
+    input[type=file] { margin: 10px 0; }
+    .msg { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Temporary Expense Tracker</h1>
+  <p>Select your <strong>expenses.csv</strong> file to upload.</p>
+  
+  <input type="file" id="fileInput" accept=".csv">
+  <br>
+  <button id="uploadBtn">Upload</button>
+  
+  <div class="msg" id="message"></div>
+  
+  <hr>
+  <a href="report.html">➡ Go to Report Page</a>
+
+  <script>
+    document.getElementById("uploadBtn").addEventListener("click", async () => {
+      const fileEl = document.getElementById("fileInput");
+      const messageEl = document.getElementById("message");
+      if (!fileEl.files.length) {
+        messageEl.textContent = "⚠️ Please choose a CSV file first.";
+        return;
+      }
+      messageEl.textContent = "⏳ Uploading...";
+      await uploadFile(fileEl, messageEl);
+    });
+  </script>
+</body>
+</html>
