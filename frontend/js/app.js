@@ -1,5 +1,5 @@
 // frontend/js/app.js
-const API_BASE = window.API_BASE || "https://<YOUR_RENDER_BACKEND_URL>"; // replace after deploy
+const API_BASE = "https://personal-expense-backend-avfq.onrender.com/"; 
 
 async function ensureToken() {
   let token = localStorage.getItem("guest_token");
