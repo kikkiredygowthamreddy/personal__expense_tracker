@@ -16,8 +16,10 @@ COOKIE_NAME = "guest_token"
 FRONTEND_ORIGINS = os.environ.get("FRONTEND_ORIGINS", "*")  # set to Netlify origin in prod
 # ----------------------------------------
 
-app = Flask(__name__, static_folder="../frontend", template_folder="../frontend")
-CORS(app, origins=FRONTEND_ORIGINS, supports_credentials=True)
+CORS(app,
+     resources={r"/*": {"origins": FRONTEND_ORIGINS}},
+     supports_credentials=True,
+     allow_headers=["Content-Type", "X-Guest-Token", "Authorization"])
 
 engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
