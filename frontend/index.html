@@ -3,24 +3,36 @@
 <head>
   <meta charset="utf-8">
   <title>Upload Your Expenses</title>
+
+  <!-- Set API base for the frontend (replace URL if your backend URL differs) -->
+  <script>
+    // IMPORTANT: change this to your real backend if different
+    window.API_BASE = "https://personal-expense-backend-avfq.onrender.com";
+    console.log("Using API_BASE =", window.API_BASE);
+  </script>
+
   <script src="js/app.js" defer></script>
+
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; text-align: center; }
     input[type=file] { margin: 10px 0; }
     .msg { margin-top: 20px; font-weight: bold; }
+    .note { color: #666; font-size: 0.9em; margin-top: 8px; }
   </style>
 </head>
 <body>
   <h1>Temporary Expense Tracker</h1>
   <p>Select your <strong>expenses.csv</strong> file to upload.</p>
-  
+
   <input type="file" id="fileInput" accept=".csv">
   <br>
   <button id="uploadBtn">Upload</button>
-  
+
   <div class="msg" id="message"></div>
-  
+  <div class="note">Tip: after uploading, visit the Report page to view charts & predictions.</div>
+
   <hr>
+  <!-- Use the static report.html file -->
   <a href="report.html">➡ Go to Report Page</a>
 
   <script>
@@ -32,8 +44,10 @@
         return;
       }
       messageEl.textContent = "⏳ Uploading...";
+      // uploadFile is provided by js/app.js
       await uploadFile(fileEl, messageEl);
     });
   </script>
 </body>
 </html>
+
