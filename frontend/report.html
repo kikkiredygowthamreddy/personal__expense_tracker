@@ -3,8 +3,18 @@
 <head>
   <meta charset="utf-8">
   <title>Your Expense Report</title>
+
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- set API_BASE if needed (index.html sets it for upload page) -->
+  <script>
+    // optional: if you didn't set window.API_BASE on index.html, uncomment and edit:
+    // window.API_BASE = "https://personal-expense-backend-avfq.onrender.com";
+  </script>
+
   <script src="js/app.js" defer></script>
+
   <style>
     body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; }
     h1 { text-align: center; }
@@ -30,33 +40,47 @@
   <h2>Predictions</h2>
   <pre id="predictions"></pre>
 
+  <div id="error" style="color:crimson; font-weight:bold; margin-top:12px;"></div>
+
   <script>
+    // use the exported fetchReport/getReport and clearData from js/app.js
     async function loadReport() {
-      const data = await getReport();
+      const errEl = document.getElementById("error");
+      errEl.textContent = "";
+      let data;
+      try {
+        // getReport is provided for compatibility and calls fetchReport()
+        data = await getReport();
+      } catch (err) {
+        console.error("loadReport error:", err);
+        errEl.textContent = "Unable to load report. Check console for details.";
+        return;
+      }
 
       const insightList = document.getElementById("insights");
       const predBox = document.getElementById("predictions");
 
       if (data.error) {
         insightList.innerHTML = `<li>${data.error}</li>`;
+        predBox.textContent = "";
         return;
       }
 
       // 🧠 Insights
       insightList.innerHTML = "";
-      data.insights.forEach(i => {
+      (data.insights || []).forEach(i => {
         const li = document.createElement("li");
         li.textContent = i;
         insightList.appendChild(li);
       });
 
       // 📈 Predictions
-      predBox.textContent = JSON.stringify(data.predictions, null, 2);
+      predBox.textContent = JSON.stringify(data.predictions || {}, null, 2);
 
       // 🗓️ Chart
       const ctx = document.getElementById("chart").getContext("2d");
-      const months = data.months;
-      const series = data.series;
+      const months = data.months || [];
+      const series = data.series || {};
       const colors = ["#2E86AB","#F6C85F","#6AB187","#F37C7C","#8D6CAB","#FF9F1C","#A2D2FF","#FFB5E8"];
       const datasets = Object.keys(series).map((cat, i) => ({
         label: cat,
@@ -65,6 +89,7 @@
         fill: false,
         tension: 0.2
       }));
+
       if (window._chart) window._chart.destroy();
       window._chart = new Chart(ctx, {
         type: "line",
@@ -74,15 +99,24 @@
     }
 
     document.getElementById("reloadBtn").addEventListener("click", loadReport);
+
     document.getElementById("clearBtn").addEventListener("click", async () => {
-      if (confirm("Clear your data?")) {
+      if (!confirm("Clear your data? This will remove your temporary stored expenses.")) return;
+      try {
         await clearData();
         alert("Data cleared. Upload again to see results.");
+        // refresh report view
+        loadReport();
+      } catch (err) {
+        console.error("clear failed:", err);
+        alert("Clear failed. See console for details.");
       }
     });
 
-    loadReport();
+    // initial load
+    window.addEventListener("load", loadReport);
   </script>
 </body>
 </html>
+
 
