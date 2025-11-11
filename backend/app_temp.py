@@ -1,10 +1,14 @@
 # backend/app_temp.py
-import os, io, uuid, datetime
-from flask import Flask, request, jsonify, make_response, send_file, render_template
+import os
+import io
+import uuid
+import datetime
+from flask import Flask, request, jsonify, make_response, send_file
 from flask_cors import CORS
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date
 from sqlalchemy.orm import sessionmaker, declarative_base
-import pandas as pd, numpy as np
+import pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
@@ -13,14 +17,23 @@ from sklearn.metrics import mean_absolute_error
 DB_URL = os.environ.get("TEMP_DB_URL", "sqlite:///temp_expenses.db")
 TTL_DAYS = int(os.environ.get("TEMP_TTL_DAYS", "7"))
 COOKIE_NAME = "guest_token"
-FRONTEND_ORIGINS = os.environ.get("FRONTEND_ORIGINS", "*")  # set to Netlify origin in prod
+FRONTEND_ORIGINS = os.environ.get("FRONTEND_ORIGINS", "*")  # set to Netlify origin in prod, e.g. https://your-site.netlify.app
 # ----------------------------------------
 
+# create app BEFORE calling CORS
+app = Flask(__name__, static_folder="../frontend", template_folder="../frontend")
+
+# configure CORS
+# - resources: pattern to match endpoints
+# - origins: FRONTEND_ORIGINS (use exact Netlify origin in production)
+# - supports_credentials: needed if using cookies (harmless for header-based token)
+# - allow_headers: include custom header X-Guest-Token used by frontend
 CORS(app,
      resources={r"/*": {"origins": FRONTEND_ORIGINS}},
      supports_credentials=True,
      allow_headers=["Content-Type", "X-Guest-Token", "Authorization"])
 
+# ---------- DB setup ----------
 engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
@@ -82,7 +95,7 @@ def parse_and_save_df(df: pd.DataFrame, guest_token: str, db_session):
         db_session.add(exp)
     db_session.commit()
 
-# ---------- Analysis (same as earlier) ----------
+# ---------- Analysis ----------
 def build_monthly_wide(db, guest_token):
     q = db.query(GuestExpense).filter(GuestExpense.guest_token == guest_token).all()
     if not q:
@@ -226,4 +239,5 @@ def ui_index():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+
 
