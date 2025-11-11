@@ -23,15 +23,31 @@ FRONTEND_ORIGINS = os.environ.get("FRONTEND_ORIGINS", "*")  # set to Netlify ori
 # create app BEFORE calling CORS
 app = Flask(__name__, static_folder="../frontend", template_folder="../frontend")
 
-# configure CORS
-# - resources: pattern to match endpoints
-# - origins: FRONTEND_ORIGINS (use exact Netlify origin in production)
-# - supports_credentials: needed if using cookies (harmless for header-based token)
-# - allow_headers: include custom header X-Guest-Token used by frontend
+# configure CORS (this still helps, but we add explicit headers below for reliability)
 CORS(app,
      resources={r"/*": {"origins": FRONTEND_ORIGINS}},
      supports_credentials=True,
      allow_headers=["Content-Type", "X-Guest-Token", "Authorization"])
+
+# ---------- Force-add CORS headers for every response (helps preflight) ----------
+# Use the env var value or "*" for dev/testing
+_allowed_origin = FRONTEND_ORIGINS if FRONTEND_ORIGINS else "*"
+
+@app.after_request
+def add_cors_headers(response):
+    """
+    Ensure CORS headers are present on every response so browser preflight succeeds.
+    This function explicitly adds:
+      - Access-Control-Allow-Origin
+      - Access-Control-Allow-Methods
+      - Access-Control-Allow-Headers
+      - Access-Control-Allow-Credentials
+    """
+    response.headers["Access-Control-Allow-Origin"] = _allowed_origin
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Guest-Token, Authorization"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
 # ---------- DB setup ----------
 engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
