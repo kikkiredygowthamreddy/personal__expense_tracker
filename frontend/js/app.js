@@ -1,6 +1,6 @@
 // frontend/js/app.js
 
-// Use window.API_BASE if provided by an inline script in HTML (index.html sets it)
+// Use window.API_BASE if provided by an inline script in HTML
 const API_BASE = window.API_BASE || "https://personal-expense-backend-avfq.onrender.com";
 console.log("frontend/js/app.js loaded. API_BASE =", API_BASE);
 
@@ -87,8 +87,7 @@ async function uploadFile(fileInputEl, messageEl) {
 }
 
 /**
- * Simple helper to call /report endpoint and return JSON or throw.
- * (Useful for the report page)
+ * Call /report and return JSON. Throws on non-OK.
  */
 async function fetchReport() {
   const token = await ensureToken();
@@ -102,7 +101,37 @@ async function fetchReport() {
   return res.json();
 }
 
-// export functions for use in inline scripts/pages
+/**
+ * Clear user's temporary data by calling backend /clear
+ */
+async function clearData() {
+  try {
+    const token = await ensureToken();
+    const res = await fetch(`${API_BASE}/clear`, {
+      method: "POST",
+      headers: { "X-Guest-Token": token }
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(()=>res.statusText);
+      throw new Error(`clear failed: ${res.status} ${text}`);
+    }
+    // remove local token and return JSON
+    localStorage.removeItem(TOKEN_KEY);
+    return res.json();
+  } catch (err) {
+    console.error("clearData error:", err);
+    throw err;
+  }
+}
+
+// Backwards-compatible alias used by older pages: getReport -> fetchReport
+async function getReport() {
+  return fetchReport();
+}
+
+// export to window so inline scripts can call them
 window.uploadFile = uploadFile;
 window.ensureToken = ensureToken;
 window.fetchReport = fetchReport;
+window.clearData = clearData;
+window.getReport = getReport;
