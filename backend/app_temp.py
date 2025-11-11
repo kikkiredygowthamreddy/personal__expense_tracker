@@ -29,7 +29,7 @@ app = Flask(__name__, static_folder="../frontend", template_folder="../frontend"
 # configure CORS
 CORS(
     app,
-    resources={r"/*": {"origins": FRONTEND_ORIGINS}},
+    resources={r"/*": {"origins": FRONTEND__ORIGINS}},
     supports_credentials=True,
     allow_headers=["Content-Type", "X-Guest-Token", "Authorization"]
 )
